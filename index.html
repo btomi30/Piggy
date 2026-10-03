@@ -69,6 +69,101 @@
         }
 
 
+        /*
+        ==============================================
+        FARM
+        ==============================================
+        */
+
+        #farm {
+
+            position: relative;
+
+            width: 100%;
+
+            height: 250px;
+
+            background:
+                linear-gradient(
+                    #9bd7f5 0%,
+                    #9bd7f5 38%,
+                    #8bcf72 38%,
+                    #8bcf72 100%
+                );
+
+            border-radius: 15px;
+
+            overflow: hidden;
+
+            margin-bottom: 25px;
+
+            border: 3px solid #78a85d;
+        }
+
+
+        /*
+        A kis füves terület mintázata
+        */
+
+        #farm::after {
+
+            content: "";
+
+            position: absolute;
+
+            left: 0;
+            right: 0;
+            bottom: 0;
+
+            height: 20px;
+
+            background: #72b35d;
+
+            opacity: 0.6;
+        }
+
+
+        /*
+        ==============================================
+        MALAC
+        ==============================================
+        */
+
+        .pig-walker {
+
+            position: absolute;
+
+            width: 65px;
+
+            height: 45px;
+
+            z-index: 5;
+
+            transition:
+                left 2.5s linear,
+                top 2.5s linear,
+                transform 0.3s ease;
+
+            pointer-events: none;
+        }
+
+
+        .pig-walker svg {
+
+            width: 100%;
+
+            height: 100%;
+
+            overflow: visible;
+        }
+
+
+        /*
+        ==============================================
+        STORY
+        ==============================================
+        */
+
         #story {
 
             font-size: 18px;
@@ -102,6 +197,7 @@
 
 
         button:hover {
+
             background: #d98c8c;
         }
 
@@ -115,38 +211,63 @@
 
 <div id="game">
 
+
     <h1>🐷 Piggy</h1>
 
 
     <div id="stats">
 
+
         <div class="stat">
+
             🐷
+
             <div class="number" id="pig">?</div>
+
             pigs
+
         </div>
 
 
         <div class="stat">
+
             ⚖️
+
             <div class="number" id="pig_size">?</div>
+
             kg
+
         </div>
 
 
         <div class="stat">
+
             🪙
+
             <div class="number" id="coin">?</div>
+
             coins
+
         </div>
+
 
     </div>
+
+
+    <!--
+    ==============================================
+    FARM
+    ==============================================
+    -->
+
+    <div id="farm"></div>
 
 
     <div id="story"></div>
 
 
     <div id="choices"></div>
+
 
 </div>
 
@@ -161,11 +282,13 @@
 ==================================================
 */
 
+
 fetch("Piggy.json")
 
     .then(response => response.json())
 
     .then(json => {
+
 
         /*
         Az InkJS létrehozza a játékot
@@ -201,6 +324,7 @@ fetch("Piggy.json")
 ==================================================
 */
 
+
 function play() {
 
 
@@ -227,18 +351,24 @@ function play() {
 
 
     /*
-    Kiolvassuk az Ink által létrehozott
-    választási lehetőségeket.
+    Megjelenítjük a választási lehetőségeket.
     */
 
     showChoices();
 
 
     /*
-    Kiolvassuk az Ink változóit.
+    Frissítjük az Ink változókat.
     */
 
     updateVariables();
+
+
+    /*
+    Frissítjük a farmon lévő malacokat.
+    */
+
+    updatePigs();
 
 }
 
@@ -249,6 +379,7 @@ function play() {
 3. VÁLASZTÁSOK MEGJELENÍTÉSE
 ==================================================
 */
+
 
 function showChoices() {
 
@@ -273,9 +404,7 @@ function showChoices() {
 
 
         /*
-        A gomb szövegét NEM mi írjuk be.
-
-        Az Ink JSON-ból jön.
+        A gomb szövegét az Ink adja.
         */
 
         button.innerText =
@@ -289,7 +418,9 @@ function showChoices() {
 
         button.onclick = function() {
 
+
             story.ChooseChoiceIndex(index);
+
 
             play();
 
@@ -310,16 +441,15 @@ function showChoices() {
 ==================================================
 */
 
+
 function updateVariables() {
 
 
     /*
     Ezek a változók a Piggy.json-ból jönnek.
 
-    A JS NEM módosítja őket.
-    Csak megjeleníti őket.
+    A JS csak kiolvassa őket.
     */
-
 
     const pig =
         story.variablesState["pig"];
@@ -343,6 +473,348 @@ function updateVariables() {
 
     document.getElementById("coin").innerText =
         coin;
+
+}
+
+
+
+/*
+==================================================
+5. MALACOK LÉTREHOZÁSA
+==================================================
+*/
+
+
+function updatePigs() {
+
+
+    /*
+    Az Ink aktuális pig változója.
+
+    Például:
+
+    pig = 3
+
+    → 3 malac jelenik meg.
+    */
+
+    const pigCount =
+        Number(story.variablesState["pig"]) || 0;
+
+
+    const farm =
+        document.getElementById("farm");
+
+
+    /*
+    Hány malac van jelenleg a farmon?
+    */
+
+    const currentPigs =
+        farm.querySelectorAll(".pig-walker");
+
+
+    /*
+    Ha már megfelelő számú malac van,
+    nincs szükség újra létrehozni őket.
+    */
+
+    if (currentPigs.length === pigCount) {
+
+        return;
+
+    }
+
+
+    /*
+    Egyszerűség kedvéért újrarajzoljuk
+    az összes malacot.
+    */
+
+    farm.innerHTML = "";
+
+
+    /*
+    Létrehozzuk őket.
+    */
+
+    for (let i = 0; i < pigCount; i++) {
+
+        createPig(i);
+
+    }
+
+}
+
+
+
+/*
+==================================================
+6. EGY MALAC LÉTREHOZÁSA
+==================================================
+*/
+
+
+function createPig(id) {
+
+
+    const farm =
+        document.getElementById("farm");
+
+
+    const pig =
+        document.createElement("div");
+
+
+    pig.className =
+        "pig-walker";
+
+
+    pig.dataset.id =
+        id;
+
+
+    /*
+    Oldalnézetű, egész testes malac.
+
+    Ez SVG, tehát nem emoji:
+    valódi rajzolt vektoros figura.
+    */
+
+    pig.innerHTML = `
+
+        <svg
+            viewBox="0 0 120 80"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+
+            <!-- farok -->
+
+            <path
+                d="M18 42
+                   C5 34, 4 52, 15 50
+                   C22 49, 20 40, 14 43"
+                fill="none"
+                stroke="#d77d82"
+                stroke-width="5"
+                stroke-linecap="round"
+            />
+
+
+            <!-- test -->
+
+            <ellipse
+                cx="60"
+                cy="43"
+                rx="42"
+                ry="25"
+                fill="#f4a6ad"
+            />
+
+
+            <!-- fej -->
+
+            <ellipse
+                cx="96"
+                cy="39"
+                rx="22"
+                ry="21"
+                fill="#f4a6ad"
+            />
+
+
+            <!-- fül -->
+
+            <path
+                d="M84 21
+                   L82 7
+                   Q93 10 97 23"
+                fill="#ee929b"
+            />
+
+
+            <!-- második fül -->
+
+            <path
+                d="M99 21
+                   L108 10
+                   Q115 19 108 27"
+                fill="#ee929b"
+            />
+
+
+            <!-- szem -->
+
+            <circle
+                cx="103"
+                cy="34"
+                r="3"
+                fill="#332222"
+            />
+
+
+            <!-- orr -->
+
+            <ellipse
+                cx="115"
+                cy="45"
+                rx="8"
+                ry="6"
+                fill="#e78991"
+            />
+
+
+            <circle
+                cx="113"
+                cy="44"
+                r="2"
+                fill="#7e4548"
+            />
+
+
+            <circle
+                cx="118"
+                cy="44"
+                r="2"
+                fill="#7e4548"
+            />
+
+
+            <!-- hátsó láb -->
+
+            <rect
+                x="38"
+                y="58"
+                width="10"
+                height="16"
+                rx="5"
+                fill="#e58f98"
+            />
+
+
+            <!-- első láb -->
+
+            <rect
+                x="72"
+                y="58"
+                width="10"
+                height="16"
+                rx="5"
+                fill="#e58f98"
+            />
+
+        </svg>
+
+    `;
+
+
+    farm.appendChild(pig);
+
+
+    /*
+    Véletlenszerű kezdőpozíció.
+    */
+
+    movePig(pig);
+
+
+    /*
+    Ezután időnként új célpontot választ.
+    */
+
+    setInterval(() => {
+
+        movePig(pig);
+
+    }, 2500 + Math.random() * 3000);
+
+}
+
+
+
+/*
+==================================================
+7. MALAC VÉLETLENSZERŰ MOZGATÁSA
+==================================================
+*/
+
+
+function movePig(pig) {
+
+
+    const farm =
+        document.getElementById("farm");
+
+
+    /*
+    A farm mérete.
+    */
+
+    const maxX =
+        farm.clientWidth - pig.offsetWidth;
+
+
+    const maxY =
+        farm.clientHeight - pig.offsetHeight;
+
+
+    /*
+    Véletlenszerű célpont.
+    */
+
+    const x =
+        Math.random() * Math.max(0, maxX);
+
+
+    /*
+    A malac ne menjen túl magasra,
+    inkább a füves területen mozogjon.
+    */
+
+    const minY =
+        farm.clientHeight * 0.35;
+
+
+    const y =
+        minY +
+        Math.random() *
+        Math.max(1, maxY - minY);
+
+
+    /*
+    Meghatározzuk, merre megy.
+
+    Ha balra:
+    tükrözzük a malacot.
+    */
+
+    const currentX =
+        parseFloat(pig.style.left) || 0;
+
+
+    if (x < currentX) {
+
+        pig.style.transform =
+            "scaleX(-1)";
+
+    } else {
+
+        pig.style.transform =
+            "scaleX(1)";
+
+    }
+
+
+    /*
+    Új pozíció.
+    */
+
+    pig.style.left =
+        x + "px";
+
+
+    pig.style.top =
+        y + "px";
 
 }
 
