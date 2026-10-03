@@ -2,13 +2,17 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
 
     <title>Piggy</title>
 
+    <!-- InkJS -->
+    <script src="https://cdn.jsdelivr.net/npm/inkjs@2.3.1/dist/ink-full.js"></script>
+
+
     <style>
 
-        /* Az egész oldal */
         body {
             font-family: Arial, sans-serif;
             background: #f5f1e8;
@@ -16,346 +20,335 @@
             padding: 30px;
         }
 
-        /* A játék központi ablaka */
+
         #game {
             max-width: 600px;
             margin: auto;
+
             background: white;
+
             padding: 30px;
+
             border-radius: 20px;
+
             box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         }
 
-        /* Cím */
+
         h1 {
             text-align: center;
-            margin-top: 0;
         }
 
-        /* A játékos állapota */
+
         #stats {
+
             display: flex;
+
             justify-content: space-around;
+
             background: #eee;
+
             padding: 15px;
+
             border-radius: 12px;
+
             margin-bottom: 25px;
         }
+
 
         .stat {
             text-align: center;
         }
 
+
         .number {
+
             font-size: 24px;
+
             font-weight: bold;
         }
 
-        /* Szövegdoboz */
+
         #story {
+
             font-size: 18px;
+
             line-height: 1.5;
+
             margin-bottom: 25px;
         }
 
-        /* Gombok */
+
         button {
+
             display: block;
+
             width: 100%;
+
             padding: 15px;
+
             margin-top: 10px;
 
             font-size: 17px;
 
             border: none;
+
             border-radius: 10px;
 
             background: #e7a4a4;
+
             cursor: pointer;
         }
+
 
         button:hover {
             background: #d98c8c;
         }
 
     </style>
+
 </head>
 
 
 <body>
+
 
 <div id="game">
 
     <h1>🐷 Piggy</h1>
 
 
-    <!-- Játékos állapota -->
-
     <div id="stats">
 
         <div class="stat">
             🐷
-            <div id="pig">0</div>
+            <div class="number" id="pig">?</div>
             pigs
         </div>
 
+
         <div class="stat">
             ⚖️
-            <div id="pig_size">10</div>
+            <div class="number" id="pig_size">?</div>
             kg
         </div>
 
+
         <div class="stat">
             🪙
-            <div id="coin">0</div>
+            <div class="number" id="coin">?</div>
             coins
         </div>
 
     </div>
 
 
-    <!-- A történet szövege -->
-
-    <div id="story">
-        You are at home.
-        You are a happy owner of some pigs.
-    </div>
+    <div id="story"></div>
 
 
-    <!-- Választási lehetőségek -->
-
-    <div id="choices">
-
-        <button onclick="goToMarket()">
-            🏪 Market
-        </button>
-
-        <button onclick="newDay()">
-            ☀️ New day
-        </button>
-
-        <button onclick="goToButcher()">
-            🔪 Sell pigs
-        </button>
-
-    </div>
+    <div id="choices"></div>
 
 </div>
 
 
+
 <script>
 
-    /*
-        ==========================
-        JÁTÉK ÁLLAPOTA
-        ==========================
-    */
 
-    let pig = 0;
-    let pig_size = 10;
-    let coin = 0;
+/*
+==================================================
+1. INK JSON BETÖLTÉSE
+==================================================
+*/
 
+fetch("Piggy.json")
 
-    /*
-        ==========================
-        KÉPERNYŐ FRISSÍTÉSE
-        ==========================
-    */
+    .then(response => response.json())
 
-    function updateScreen() {
+    .then(json => {
 
-        document.getElementById("pig").innerText = pig;
+        /*
+        Az InkJS létrehozza a játékot
+        a Piggy.json alapján.
+        */
 
-        document.getElementById("pig_size").innerText = pig_size;
-
-        document.getElementById("coin").innerText = coin;
-
-    }
+        window.story = new inkjs.Story(json);
 
 
-    /*
-        ==========================
-        HOME
-        ==========================
-    */
+        /*
+        Elindítjuk a játékot.
+        */
 
-    function home() {
+        play();
+
+
+    })
+
+    .catch(error => {
+
+        console.error(error);
 
         document.getElementById("story").innerText =
-            "You are at home. You are a happy owner of "
-            + pig
-            + " pig(s) thats "
-            + pig_size
-            + " kg. You have "
-            + coin
-            + " coins.";
+            "Could not load Piggy.json";
+
+    });
 
 
-        document.getElementById("choices").innerHTML = `
 
-            <button onclick="goToMarket()">
-                🏪 Market
-            </button>
+/*
+==================================================
+2. AZ INK STORY LEJÁTSZÁSA
+==================================================
+*/
 
-            <button onclick="newDay()">
-                ☀️ New day
-            </button>
-
-            <button onclick="goToButcher()">
-                🔪 Sell pigs
-            </button>
-
-        `;
-
-        updateScreen();
-    }
+function play() {
 
 
     /*
-        ==========================
-        MARKET
-        ==========================
+    Amíg az Inknek van megjelenítendő szövege,
+    kiolvassuk.
     */
 
-    function goToMarket() {
+    let text = "";
 
-        document.getElementById("story").innerText =
-            "Welcome to the market.";
 
-        document.getElementById("choices").innerHTML = `
+    while (story.canContinue) {
 
-            <button onclick="buyPig()">
-                🐷 Buy a pig — 5 coins
-            </button>
-
-            <button onclick="home()">
-                🏠 Home
-            </button>
-
-        `;
+        text += story.Continue();
 
     }
 
 
     /*
-        ==========================
-        DISZNÓ VÁSÁRLÁSA
-        ==========================
+    Megjelenítjük a történet szövegét.
     */
 
-    function buyPig() {
-
-        if (coin < 5) {
-
-            document.getElementById("story").innerText =
-                "Not enough money.";
-
-            return;
-        }
-
-
-        pig = pig + 1;
-
-        pig_size = pig_size + 1;
-
-        coin = coin - 5;
-
-
-        document.getElementById("story").innerText =
-            "Bought a pig.";
-
-        updateScreen();
-
-    }
+    document.getElementById("story").innerText = text;
 
 
     /*
-        ==========================
-        ÚJ NAP
-        ==========================
+    Kiolvassuk az Ink által létrehozott
+    választási lehetőségeket.
     */
 
-    function newDay() {
-
-        if (pig < 1) {
-
-            document.getElementById("story").innerText =
-                "You slept well.";
-
-        } else {
-
-            pig_size = pig_size + 1;
-
-            coin = coin - (pig * 0.5);
-
-            document.getElementById("story").innerText =
-                "Your pigs ate and slept well.";
-
-        }
-
-        updateScreen();
-
-    }
+    showChoices();
 
 
     /*
-        ==========================
-        BUTCHER
-        ==========================
+    Kiolvassuk az Ink változóit.
     */
 
-    function goToButcher() {
+    updateVariables();
 
-        document.getElementById("story").innerText =
-            "Welcome to the butcher.";
+}
 
-        document.getElementById("choices").innerHTML = `
 
-            <button onclick="sellPigs()">
-                🔪 Sell pigs
-            </button>
 
-            <button onclick="home()">
-                🏠 Home
-            </button>
+/*
+==================================================
+3. VÁLASZTÁSOK MEGJELENÍTÉSE
+==================================================
+*/
 
-        `;
+function showChoices() {
 
-    }
+
+    const choices =
+        document.getElementById("choices");
+
+
+    choices.innerHTML = "";
 
 
     /*
-        ==========================
-        ELADÁS
-        ==========================
+    Az Ink JSON-ban található aktuális
+    choice-okból készítünk HTML gombokat.
     */
 
-    function sellPigs() {
-
-        coin = coin + (pig_size * 2);
-
-        pig_size = 0;
-
-        pig = 0;
+    story.currentChoices.forEach((choice, index) => {
 
 
-        document.getElementById("story").innerText =
-            "Sold your pigs.";
+        const button =
+            document.createElement("button");
 
-        updateScreen();
 
-    }
+        /*
+        A gomb szövegét NEM mi írjuk be.
+
+        Az Ink JSON-ból jön.
+        */
+
+        button.innerText =
+            choice.text;
+
+
+        /*
+        Ha megnyomják a gombot,
+        visszaadjuk a választást az Inknek.
+        */
+
+        button.onclick = function() {
+
+            story.ChooseChoiceIndex(index);
+
+            play();
+
+        };
+
+
+        choices.appendChild(button);
+
+    });
+
+}
+
+
+
+/*
+==================================================
+4. INK VÁLTOZÓK MEGJELENÍTÉSE
+==================================================
+*/
+
+function updateVariables() {
 
 
     /*
-        ==========================
-        INDULÁS
-        ==========================
+    Ezek a változók a Piggy.json-ból jönnek.
+
+    A JS NEM módosítja őket.
+    Csak megjeleníti őket.
     */
 
-    home();
+
+    const pig =
+        story.variablesState["pig"];
+
+
+    const pigSize =
+        story.variablesState["pig_size"];
+
+
+    const coin =
+        story.variablesState["coin"];
+
+
+    document.getElementById("pig").innerText =
+        pig;
+
+
+    document.getElementById("pig_size").innerText =
+        pigSize;
+
+
+    document.getElementById("coin").innerText =
+        coin;
+
+}
+
 
 </script>
+
 
 </body>
 
